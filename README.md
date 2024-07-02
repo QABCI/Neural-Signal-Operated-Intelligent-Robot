@@ -1,18 +1,25 @@
 # Neural Signal Operated Intelligent Robot
 
- ## Introduction
-Brain-computer Interface (BCI) applications based on steady-state visual evoked potentials (SSVEP) have the advantages of being fast, accurate and mobile. SSVEP... (explains SSVEP). The majority of SSVEP applications focus on the spelling task. Usually the subjects are asked to stare at a group of letters flashing at different rate on the screen, and EEG data is simultaneously recorded to decode which letter the subject is currently looking at. Many researchers in the field are constantly working on expanding the number of classes for classification as well as the accuracy of the classification algorithm. As a group of high school students, we know that it would be extremely challenging to come up with a better algorithm for SSVEP classification. Thus, we decided to slightly modifying an existing algorithm and focus on expanding the application side of SSVEP. Robot maze navigation has always been a challenging field in computer algorithms. Being able to design a robot that is capable of making real-time decisions and solve unexpected problems post a great challenge (https://www.frontiersin.org/journals/robotics-and-ai/articles/10.3389/frobt.2022.834021/full). The current directions of robot maze navigation has been focused on equipping the robot with more sensors to acquire more information and improving path finding algorithms. Most of the existing algorithms rely solely on the robots to make its own decision, such method could be advantageous in applications which human supervision cannot be provided. However, in some applications in which a human supervisor is available and time is a key factor, it may be advantageous for human and robot collaboration. In this paper, we propose a novel robot maze navigation system with contactless human guidance through SSVEP. The robot car is equipped with basic path finding algorithms, and when a decision has to be made, usually at a cross-section, the robot stops and asks for human guidance. The operator could give instructions to the robot car by staring at one of the threes flashing LEDs equipped at the front, left and right side attached on the robot, each LED corresponds to the command "move forward", "turn 90 degrees left" and "turn 90 degrees right". Combining with the human's intelligence that sees the entirety of the maze, the robot can navigate its way out of the maze more efficiently. We believe such a human machine collaboration scheme could be implemented at elderly homes to help elderly people carry out simple daily tasks such as object retrieval, taking out trash and assist with other activities. 
- ##Requirements
-| name        | function |  website  |
-| :--------  | :-----  | :----:  |
-| Cyton board | data conversion|[openBCI](https://docs.openbci.com/GettingStarted/Boards/CytonGS/)|
-| Python | data processing and flask server|[Python](https://www.python.org/downloads/)|
-| Ear clip electrodes and wires | data collection|[openBCI](https://docs.openbci.com/GettingStarted/Boards/CytonGS/)|
-| Arduino based ESP32 board | car CPU|[Arduino](https://www.arduino.cc/)|
-| Motor and wooden based vehicle frame| car frame| Nolink|
-| LED, resistance and lithium battery| car material| Nolink|
+![car](https://github.com/QABCI/Neural-Signal-Operated-Intelligent-Robot/blob/main/temp/car.jpg?raw=true "car")
 
-#### Python lib
+## Introduction
+
+BCI using SSVEP is swift, precise, and portable, ideal for tasks like spelling where users gaze at flashing characters to convey commands. Research efforts concentrate on enhancing classification capacity and accuracy. Given the complexity of improving SSVEP algorithms, we, as high school students, opted to adapt existing algorithms and explore SSVEP applications, specifically in robot maze navigation—a domain posing real-time decision-making challenges, as discussed in recent studies.
+Typically, robot navigation revolves around sensor enhancement and algorithm optimization. While autonomous robots excel in unsupervised settings, combining human guidance with robotic systems can be beneficial when timely decisions are crucial. Our innovative system proposes SSVEP-guided robot navigation, enabling contactless human direction. The robot halts at intersections for guidance, with the operator indicating "forward," "left," or "right" via gaze-directed LEDs, leveraging human overview to swiftly exit mazes.
+We envision this human-robot collaboration model enhancing the quality of life in eldercare facilities, facilitating routine tasks and promoting independence.
+
+ ##Requirements
+
+| name                                 | function                         |                             website                             |
+| :----------------------------------- | :------------------------------- | :-------------------------------------------------------------: |
+| Cyton board                          | data conversion                  | [openBCI](https://docs.openbci.com/GettingStarted/Boards/CytonGS/) |
+| Python                               | data processing and flask server |            [Python](https://www.python.org/downloads/)            |
+| Ear clip electrodes and wires        | data collection                  | [openBCI](https://docs.openbci.com/GettingStarted/Boards/CytonGS/) |
+| Arduino based ESP32 board            | car CPU                          |                 [Arduino](https://www.arduino.cc/)                 |
+| Motor and wooden based vehicle frame | car frame                        |                             [Nolink]()                             |
+| LED, resistance and lithium battery  | car material                     |                             [Nolink]()                             |
+
+##### Python lib
 
 Python (LSL connection): `pip install pylsl`
 
@@ -25,3 +32,127 @@ Python (AI frame): `pip install tensorflow-gpu==2.0.0`
 Python (Scipy): `pip install scipy`
 
 Python (Server frame): `pip install flask`
+
+##### Arduino lib
+
+ArduinoJson lib `ArduinoJson`
+
+## Algorithm implementation
+
+##### Arduino Algorithm
+
+By create FreeRTOS tasks to let the LED and the network work together
+
+```cpp
+TaskHandle_t TASK_Handle1 = NULL; //Task handle for light
+TaskHandle_t TASK_Handle2 = NULL;
+TaskHandle_t TASK_Handle3 = NULL;
+TaskHandle_t TASK_net = NULL;     //Task handle for network
+
+/*
+...
+*/
+
+xTaskCreate(
+                    net,
+                    "net",
+                    24*1024,
+                    NULL,
+                    4,
+                    &TASK_net);
+  xTaskCreate(
+                    TASK1,
+                    "Task1",
+                    24*1024,
+                    NULL,
+                    1,
+                    &TASK_Handle1);
+ 
+  xTaskCreate(
+                    TASK2,
+                    "Task2",
+                    24*1024,
+                    NULL,
+                    2,
+                    &TASK_Handle2);
+  xTaskCreate(
+                    TASK3,
+                    "Task3",
+                    24*1024,
+                    NULL,
+                    3,
+                    &TASK_Handle3);
+```
+
+And using arduino code to control the motor
+
+```cpp
+                            //car motor 1
+#define MOTOA_P 19
+#define MOTOA_N 18
+                            //car motor 2
+#define MOTOB_P 16
+#define MOTOB_N 17
+
+/*
+...
+*/
+
+void front() {
+  digitalWrite(MOTOA_P, HIGH);
+  digitalWrite(MOTOA_N, LOW);
+  digitalWrite(MOTOB_P, HIGH);
+  digitalWrite(MOTOB_N, LOW);
+
+}
+void left() {
+  digitalWrite(MOTOA_P, HIGH);
+  digitalWrite(MOTOA_N, LOW);
+  digitalWrite(MOTOB_P, LOW);
+  digitalWrite(MOTOB_N, HIGH);
+
+}
+void right() {
+  digitalWrite(MOTOA_N, HIGH);
+  digitalWrite(MOTOA_P, LOW);
+  digitalWrite(MOTOB_N, LOW);
+  digitalWrite(MOTOB_P, HIGH);
+
+}
+void stop() {
+  digitalWrite(MOTOA_P, LOW);
+  digitalWrite(MOTOA_N, LOW);
+  digitalWrite(MOTOB_P, LOW);
+  digitalWrite(MOTOB_N, LOW);
+}
+```
+
+##### Python server Algorithm
+
+Build a server using Flask and update and transfer data accordingly
+```python
+@app.route("/a", methods=["POST"]) #the place to update value
+def set_value():
+    button_value = request.form.get("button", "0")
+    if button_value in ["0", "1", "2", "3", "4", "5"]:
+        global current_value
+        if int(button_value) <= 3:
+            current_value = int(button_value)
+        else:
+            current_value = current_value
+    return jsonify({"status": "ok", "value": current_value})
+
+
+@app.route("/s")    #get value from arduino
+def get_value():
+    return jsonify({"value": current_value})
+```
+
+##### Python SSVEP Algorithm
+
+我不会
+```python
+```
+
+### Effect demonstration
+暂时没有
