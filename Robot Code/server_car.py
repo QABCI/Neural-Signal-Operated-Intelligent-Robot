@@ -14,8 +14,6 @@ template = """
     <button type="button" onclick="setValue(1)">1</button>  
     <button type="button" onclick="setValue(2)">2</button>  
     <button type="button" onclick="setValue(3)">3</button>  
-    <button type="button" onclick="setValue(4)">Light off</button>  
-    <button type="button" onclick="setValue(5)">Light on</button>  
 </form>  
 <p>Current Value: <span id="current-value">{{ current_value }}</span></p>  
   
@@ -37,40 +35,27 @@ function setValue(value) {
 """
 
 
-@app.route("/")
+@app.route("/") #debug page to control the car
 def index():
     return render_template_string(template, current_value=current_value)
 
 
-@app.route("/a", methods=["POST"])
+@app.route("/a", methods=["POST"]) #the place to update value
 def set_value():
     button_value = request.form.get("button", "0")
     if button_value in ["0", "1", "2", "3", "4", "5"]:
         global current_value
-        global light_value
         if int(button_value) <= 3:
             current_value = int(button_value)
-            light_value = light_value
         else:
             current_value = current_value
-            light_value = int(button_value) - 4
     return jsonify({"status": "ok", "value": current_value})
 
 
-@app.route("/s")
+@app.route("/s")    #get value from arduino
 def get_value():
-    return jsonify({"value": current_value, "light": light_value})
+    return jsonify({"value": current_value, "light": light_value})  #the light value is useless now
 
-@app.route("/in", methods=["POST"])
-def set_value_():
-    value = request.json['value']
-    if value in ["0", "1", "2", "3"]:
-        global current_value
-        global light_value
-        if int(value) <= 3:
-            current_value = int(value)
-            light_value = light_value
-    return jsonify({"status": "ok", "value": current_value})
 
 
 if __name__ == "__main__":

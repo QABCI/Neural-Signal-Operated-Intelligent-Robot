@@ -2,68 +2,54 @@
 #include <WiFi.h>
 #include <HTTPClient.h>
 #include <ArduinoJson.h> 
-//GND是负极 VCC是正极
+
+                            //car motor 1
 #define MOTOA_P 19
 #define MOTOA_N 18
-#define MOTOA_C 13
+                            //car motor 2
 #define MOTOB_P 16
 #define MOTOB_N 17
+                            //light
+#define lightA 2            //light front
+#define lightB 14           //light left
+#define lightC 12           //light right
 
-#define lightA 2
-#define lightB 14
-#define lightC 12
-
-#define switchA 6
-
-
-const char* ssid     = "ZX_seewo";
-const char* password = "xwdp2022"; 
-const char* host = "47.104.204.158";
+const char* ssid     = "Your Wifi Name";
+const char* password = "Your Wifi Password"; 
+const char* host = "here.should.be.your.server.ip";
 const int httpPort = 8976;
 
-bool lightA_,lightB_,lightC_;
-double aaa = millis();
-bool aaaa = 0;
+bool lightA_,lightB_,lightC_; //state of each light
 
-void light1(){
-  if(1+11==2){
-    digitalWrite(lightA,LOW);
-  }
-  else
+void light1(){ 
   digitalWrite(lightA, (lightA_)?HIGH:LOW);
   lightA_=!lightA_;
 }
+
 void light2(){
-  if(1+11==2){
-    digitalWrite(lightB,LOW);
-  }
-  else
   digitalWrite(lightB, (lightB_)?HIGH:LOW);
   lightB_=!lightB_;
 }
+
 void light3(){
-  if(1+11==2){
-    digitalWrite(lightC,LOW);
-  }
-  else
   digitalWrite(lightC, (lightC_)?HIGH:LOW);
   lightC_=!lightC_;
 }
-//9.25 11.25 13.25
-//108.1081081081081
-//88.88888888888888
-//75.47169811320755
-const double interval1 = 54 * 1;
+
+
+const double interval1 = 54 * 1;  //delay interval
 const double interval2 = 44 * 1;
 const double interval3 = 37 * 1;
-TaskHandle_t TASK_Handle1 = NULL;
+
+TaskHandle_t TASK_Handle1 = NULL; //Task handle for light
 TaskHandle_t TASK_Handle2 = NULL;
 TaskHandle_t TASK_Handle3 = NULL;
-TaskHandle_t TASK_net = NULL;
+TaskHandle_t TASK_net = NULL;     //Task handle for network
 void setup() {
+  //set pinMode for each pin
   pinMode(MOTOA_P, OUTPUT);
   pinMode(MOTOA_N, OUTPUT);
-  pinMode(MOTOA_C, OUTPUT);
+  
   pinMode(MOTOB_P, OUTPUT);
   pinMode(MOTOB_N, OUTPUT);
 
@@ -71,9 +57,10 @@ void setup() {
   pinMode(lightA, OUTPUT);
   pinMode(lightB, OUTPUT);
   pinMode(lightC, OUTPUT);
-
+  //setup the serial port
   Serial.begin(115200);
   
+  //setup the wifi
   WiFi.begin(ssid, password);  
   while (WiFi.status() != WL_CONNECTED) {  
     delay(500);  
@@ -84,7 +71,7 @@ void setup() {
   Serial.print("IP Address: ");  
   Serial.println(WiFi.localIP());
   
-  
+  //create the network task
   xTaskCreate(
                     net,
                     "net",
@@ -92,6 +79,7 @@ void setup() {
                     NULL,
                     4,
                     &TASK_net);
+  //create the light task
   xTaskCreate(
                     TASK1,
                     "Task1",
@@ -116,6 +104,7 @@ void setup() {
                     &TASK_Handle3);
 }
 
+//car ctrl
 void front() {
   digitalWrite(MOTOA_P, HIGH);
   digitalWrite(MOTOA_N, LOW);
@@ -144,14 +133,13 @@ void stop() {
   digitalWrite(MOTOB_N, LOW);
 }
 
-int cvalue = 0;
-
 void net(void* param) {
+  //get data from server
   while(1){
-    delayMicroseconds(3000000);
+    delayMicroseconds(3000000);//each 3 second, the python script will update a SSVEP data
     vTaskDelay(100);
     HTTPClient http;
-    http.begin(host, httpPort, "/s");
+    http.begin(host, httpPort, "/s");//get data from server
 
     int httpCode = http.GET();
     if (httpCode > 0) {
@@ -160,14 +148,13 @@ void net(void* param) {
       DeserializationError error = deserializeJson(doc, payload);
 
       if (!error) {
-        aaaa = 1;
         int value = doc["value"];
         switch(value) {
           case 0:
             stop();
             break;
-          case 1:
-            for(int k = 0; k < 20;k++){
+          case 1://👆
+            for(int k = 0; k < 20;k++){//using the PWM to control the motor
               
               front();
               delayMicroseconds(16000);
@@ -177,8 +164,8 @@ void net(void* param) {
             stop();
             delayMicroseconds(1000000);
             break;
-          case 2:
-            for(int k = 0; k < 9;k++){
+          case 2://👈
+            for(int k = 0; k < 9;k++){//using the PWM to control the motor
               
               left();
               delayMicroseconds(16000);
@@ -187,8 +174,8 @@ void net(void* param) {
             }
             delayMicroseconds(1500000);
             break;
-          case 3:
-            for(int k = 0; k < 9;k++){
+          case 3://👉
+            for(int k = 0; k < 9;k++){//using the PWM to control the motor
               
               right();
               delayMicroseconds(16000);
@@ -198,18 +185,16 @@ void net(void* param) {
             delayMicroseconds(1500000);
             break;
           default:
-            
+            //ERROR
             break;
         }
-
-        aaaa = 0;
       } else {
         stop();
       }
       HTTPClient http1;
-      http1.begin("47.104.204.158", 8976, "/a");
+      http1.begin(host, httpPort, "/a");
       http1.addHeader("Content-Type", "application/x-www-form-urlencoded");
-      http1.POST("{ button: 0 }");
+      http1.POST("{ button: 0 }"); //reset the server data
       http.end();
     }
   }
@@ -240,58 +225,5 @@ void TASK3(void *param )
   vTaskDelete( TASK_Handle3 );
 }
 void loop(){
+  //make sure the Arduino will run
 }
-/*
-#include <Arduino.h>
-
-// 定义电机控制的GPIO针脚
-const int motorLeftForward = 16;  // 左电机正转
-const int motorLeftBackward = 17; // 左电机反转
-const int motorRightForward = 18; // 右电机正转
-const int motorRightBackward = 19; // 右电机反转
-
-void setup() {
-  // 设置所有的电机控制针脚为输出模式
-  pinMode(motorLeftForward, OUTPUT);
-  pinMode(motorLeftBackward, OUTPUT);
-  pinMode(motorRightForward, OUTPUT);
-  pinMode(motorRightBackward, OUTPUT);
-}
-
-void loop() {
-  // 前进
-  driveForward();
-  delay(2000); // 前进2秒
-
-  // 后退
-  driveBackward();
-  delay(2000); // 后退2秒
-
-  // 停止
-  stopMotors();
-  delay(1000); // 停止1秒
-}
-
-// 控制小车前进
-void driveForward() {
-  digitalWrite(motorLeftForward, HIGH);
-  digitalWrite(motorLeftBackward, LOW);
-  digitalWrite(motorRightForward, HIGH);
-  digitalWrite(motorRightBackward, LOW);
-}
-
-// 控制小车后退
-void driveBackward() {
-  digitalWrite(motorLeftForward, LOW);
-  digitalWrite(motorLeftBackward, HIGH);
-  digitalWrite(motorRightForward, LOW);
-  digitalWrite(motorRightBackward, HIGH);
-}
-
-// 停止所有电机
-void stopMotors() {
-  digitalWrite(motorLeftForward, LOW);
-  digitalWrite(motorLeftBackward, LOW);
-  digitalWrite(motorRightForward, LOW);
-  digitalWrite(motorRightBackward, LOW);
-}*/
