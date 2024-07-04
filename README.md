@@ -28,7 +28,7 @@ Py --> r(right 3) --> server
 | Motor and wooden based vehicle frame | car frame                        |                             [Nolink]()                             |
 | LED, resistance and lithium battery  | car material                     |                             [Nolink]()                             |
 
-##### Python lib
+#### Python lib
 
 Python (LSL connection): `pip install pylsl`
 
@@ -42,13 +42,13 @@ Python (Scipy): `pip install scipy`
 
 Python (Server frame): `pip install flask`
 
-##### Arduino lib
+#### Arduino lib
 
 ArduinoJson lib `ArduinoJson`
 
 ## Algorithm implementation
 
-##### Arduino Algorithm
+#### Arduino Algorithm
 
 By create FreeRTOS tasks to let the LED and the network work together
 
@@ -136,7 +136,7 @@ void stop() {
 }
 ```
 
-##### Python server Algorithm
+#### Python server Algorithm
 
 Build a server using Flask and update and transfer data accordingly
 
@@ -158,7 +158,7 @@ def get_value():
     return jsonify({"value": current_value})
 ```
 
-##### Python SSVEP Algorithm
+#### Python SSVEP Algorithm
 
 我不会
 
