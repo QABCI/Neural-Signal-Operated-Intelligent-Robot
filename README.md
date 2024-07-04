@@ -168,4 +168,4 @@ def get_value():
 
 ### Effect demonstration
 
-暂时没有
+[[bilibili video]: Neural Signal Operated Intelligent robot: Human-guided Robot Maze through SSVEP](https://www.bilibili.com/video/BV13VhpeHETQ/?share_source=copy_web&vd_source=89ecb8a80210694715131011e61eab9d)
