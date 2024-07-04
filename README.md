@@ -4,11 +4,20 @@
 
 ## Introduction
 
-BCI using SSVEP is swift, precise, and portable, ideal for tasks like spelling where users gaze at flashing characters to convey commands. Research efforts concentrate on enhancing classification capacity and accuracy. Given the complexity of improving SSVEP algorithms, we, as high school students, opted to adapt existing algorithms and explore SSVEP applications, specifically in robot maze navigation—a domain posing real-time decision-making challenges, as discussed in recent studies.
-Typically, robot navigation revolves around sensor enhancement and algorithm optimization. While autonomous robots excel in unsupervised settings, combining human guidance with robotic systems can be beneficial when timely decisions are crucial. Our innovative system proposes SSVEP-guided robot navigation, enabling contactless human direction. The robot halts at intersections for guidance, with the operator indicating "forward," "left," or "right" via gaze-directed LEDs, leveraging human overview to swiftly exit mazes.
+**BCI** using **SSVEP** is **swift**, **precise**, and **portable**, ideal for tasks like spelling where users gaze at flashing characters to convey commands. Research efforts concentrate on enhancing classification capacity and accuracy. Given the complexity of improving **SSVEP** algorithms, we, as high school students, opted to adapt existing algorithms and explore SSVEP applications, specifically in **robot maze navigation**—a domain posing **real-time** decision-making challenges, as discussed in recent studies.
+Typically, robot navigation revolves around sensor enhancement and algorithm optimization. While autonomous robots excel in unsupervised settings, combining human guidance with robotic systems can be beneficial when timely decisions are crucial. Our innovative system proposes SSVEP-guided robot navigation, enabling contactless human direction. The robot halts at intersections for guidance, with the operator indicating **"forward," "left," or "right" via gaze-directed LEDs**, leveraging human overview to swiftly exit mazes.
 We envision this human-robot collaboration model enhancing the quality of life in eldercare facilities, facilitating routine tasks and promoting independence.
 
- ##Requirements
+When the car determines that it needs to receive instructions, it will **start flashing lights**. Then, the **CYTON board** will read data from the brain by **OpenBCI Cyton board** and send it to the **Python client**. The Python client analyzes the SSVEP data and converts it into instructions for forward (1), left turn (2), or right turn (3), which will be sent to the **Python server**. This process will take about three seconds, and the car will automatically **obtain data** from the server and use it to control the motor movement, thus looping around.
+
+```mermaid
+graph LR;
+C[Car] -->Ep[Eyes] --> B[Brain] --> E[EEG Sensor] --> O[OpenBCI Cyton Board] --> L[LSL data stream] --> Py{Python Client} --> f(forward 1) --> server[server] --> C
+Py --> l(left 2) --> server
+Py --> r(right 3) --> server
+```
+
+## Requirements
 
 | name                                 | function                         |                             website                             |
 | :----------------------------------- | :------------------------------- | :-------------------------------------------------------------: |
@@ -130,6 +139,7 @@ void stop() {
 ##### Python server Algorithm
 
 Build a server using Flask and update and transfer data accordingly
+
 ```python
 @app.route("/a", methods=["POST"]) #the place to update value
 def set_value():
@@ -151,8 +161,11 @@ def get_value():
 ##### Python SSVEP Algorithm
 
 我不会
+
 ```python
+
 ```
 
 ### Effect demonstration
+
 暂时没有
