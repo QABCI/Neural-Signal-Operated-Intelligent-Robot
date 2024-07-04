@@ -159,16 +159,34 @@ def get_value():
 ```
 
 #### Python SSVEP Algorithm
-<<<<<<< Updated upstream
 ![doge](https://github.com/QABCI/Neural-Signal-Operated-Intelligent-Robot/blob/main/temp/preprocess.png?raw=true "SSVEP")
-我不会
-=======
-
 The raw data will be collected and stored in a list. Every 3 seconds, the data will be filtered and transformed to frequency domain. Then the data will be analyzed and a classification result will display.
->>>>>>> Stashed changes
 
 ```python
-
+def everysecond():
+    
+    valuelist = []
+    #tick = time.time()
+    while len(valuelist) < 750:
+        sample, timestamps = inlet.pull_sample()
+        if timestamps:
+            valuelist.append(sample[1])  # Store the sample with its timestamp
+  
+    data = valuelist
+    filtered_data = butter_bandpass_filter(data, lowcut, highcut, fs, order=6)
+    freqs_filtered, fft_filtered = compute_fft(data, fs)
+    # Update the time variables for the next iteration
+    lower_bound=np.where(freqs_filtered==8)[0][0]
+    higher_bound=np.where(freqs_filtered==16)[0][0]+1
+    feature=fft_filtered[lower_bound:higher_bound]#only extract the power info from freq 8-16Hz
+    feature_norm=feature/max(feature)
+    example_list = feature_norm
+    input_data = np.array(example_list).reshape(25, 1)
+    input_data = input_data.reshape((1, 25, 1))
+    prediction=model.predict(input_data)
+    print(prediction) 
+    print(np.argmax(prediction))
+    requests.post('http://your.serverIP.should.be.here/in',json={"value":str(np.argmax(prediction)+1)})
 ```
 
 ### Effect demonstration
