@@ -159,8 +159,13 @@ def get_value():
 ```
 
 #### Python SSVEP Algorithm
+<<<<<<< Updated upstream
 ![doge](https://github.com/QABCI/Neural-Signal-Operated-Intelligent-Robot/blob/main/temp/preprocess.png?raw=true "SSVEP")
 我不会
+=======
+
+The raw data will be collected and stored in a list. Every 3 seconds, the data will be filtered and transformed to frequency domain. Then the data will be analyzed and a classification result will display.
+>>>>>>> Stashed changes
 
 ```python
 
