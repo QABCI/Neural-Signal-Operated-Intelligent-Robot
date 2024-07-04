@@ -159,7 +159,7 @@ def get_value():
 ```
 
 #### Python SSVEP Algorithm
-
+![doge](https://github.com/QABCI/Neural-Signal-Operated-Intelligent-Robot/blob/main/temp/preprocess.png?raw=true "SSVEP")
 我不会
 
 ```python
